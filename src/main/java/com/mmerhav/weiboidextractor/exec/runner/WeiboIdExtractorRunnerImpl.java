@@ -5,6 +5,7 @@ import com.mmerhav.weiboidextractor.core.extractor.WeiboDataExtractor;
 import com.mmerhav.weiboidextractor.core.reader.WeiboRawData;
 import com.mmerhav.weiboidextractor.core.reader.WeiboRawDataReader;
 import com.mmerhav.weiboidextractor.core.writer.WeiboDataWriter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,15 +25,8 @@ import java.util.List;
 //import lombok.extern.slf4j.Slf4j;
 
 @Component
-//@Slf4j
+@Slf4j
 public class WeiboIdExtractorRunnerImpl implements WeiboIdExtractorRunner {
-
-    private static Logger log = LoggerFactory.getLogger(WeiboDataExtractor.class);
-
-    @PostConstruct
-    public void init() {
-        log = LoggerFactory.getLogger(WeiboDataExtractor.class);
-    }
 
     @Value("${path.to.json}")
     public String pathToJson;
