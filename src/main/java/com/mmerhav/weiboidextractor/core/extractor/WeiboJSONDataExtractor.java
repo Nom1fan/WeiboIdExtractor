@@ -3,10 +3,12 @@ package com.mmerhav.weiboidextractor.core.extractor;
 import com.mmerhav.weiboidextractor.core.reader.WeiboRawData;
 //import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 
@@ -23,6 +25,9 @@ import java.util.List;
 public class WeiboJSONDataExtractor implements WeiboDataExtractor {
 
     private static Logger log = LoggerFactory.getLogger(WeiboDataExtractor.class);;
+
+    @Value("${scraping.interval}")
+    private int scarpingInterval;
 
 //    @PostConstruct
 //    public void init() {
@@ -43,10 +48,9 @@ public class WeiboJSONDataExtractor implements WeiboDataExtractor {
             String nickName = weiboRawData.getNickName();
             String search = "weibo uid= \\\"" + nickName + "\\\"";
 
+            boolean cont = true;
             try {
                 links = Jsoup.connect(google + URLEncoder.encode(search, charset)).userAgent(userAgent).get().select(".g>.r>a");
-
-                boolean cont = true;
                 for (int i = 0; i < links.size() && cont ; i++) {
 
                     Element link = links.get(i);
@@ -74,11 +78,23 @@ public class WeiboJSONDataExtractor implements WeiboDataExtractor {
                     log.info("Title: " + title);
                     log.info("URL: " + url);
                 }
+            } catch(HttpStatusException e) {
+                e.printStackTrace();
+                break;
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            sleep(scarpingInterval);
         }
         return weiboDataResultList;
+    }
+
+    private void sleep(int milliSeconds) {
+        try {
+            Thread.sleep(milliSeconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
 

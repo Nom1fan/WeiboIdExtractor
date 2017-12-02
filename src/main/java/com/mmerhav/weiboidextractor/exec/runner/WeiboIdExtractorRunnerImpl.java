@@ -4,6 +4,7 @@ import com.mmerhav.weiboidextractor.core.extractor.WeiboData;
 import com.mmerhav.weiboidextractor.core.extractor.WeiboDataExtractor;
 import com.mmerhav.weiboidextractor.core.reader.WeiboRawData;
 import com.mmerhav.weiboidextractor.core.reader.WeiboRawDataReader;
+import com.mmerhav.weiboidextractor.core.writer.WeiboDataWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class WeiboIdExtractorRunnerImpl implements WeiboIdExtractorRunner {
 
     @PostConstruct
     public void init() {
-//        log = LoggerFactory.getLogger(WeiboDataExtractor.class);
+        log = LoggerFactory.getLogger(WeiboDataExtractor.class);
     }
 
     @Value("${path.to.json}")
@@ -42,6 +43,9 @@ public class WeiboIdExtractorRunnerImpl implements WeiboIdExtractorRunner {
     @Autowired
     private WeiboDataExtractor extractor;
 
+    @Autowired
+    private WeiboDataWriter writer;
+
     @Override
     public void run() throws IOException {
 
@@ -52,5 +56,7 @@ public class WeiboIdExtractorRunnerImpl implements WeiboIdExtractorRunner {
 
         List<WeiboData> weiboDataList = extractor.extract(weiboRawDataList);
         log.info("Extracted weibo data:" + Arrays.toString(weiboDataList.toArray()));
+
+        writer.write(weiboDataList);
     }
 }
