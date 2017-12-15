@@ -1,4 +1,4 @@
-package com.mmerhav.weiboidextractor.core.model;
+package com.mmerhav.weiboidextractor.selenium.core.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
