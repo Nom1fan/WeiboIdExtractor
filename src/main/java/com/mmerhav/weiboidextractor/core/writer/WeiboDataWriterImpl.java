@@ -13,7 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-@Component
+//@Component
 @Slf4j
 public class WeiboDataWriterImpl implements WeiboDataWriter {
 
@@ -23,16 +23,14 @@ public class WeiboDataWriterImpl implements WeiboDataWriter {
     @Autowired
     private Gson gson;
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void write(List<WeiboData> weiboDataList) throws IOException {
         File outputFile = new File(outputPath + "/output.txt");
         FileUtil.createMissingParentDirectories(outputFile);
-        boolean isOK = outputFile.createNewFile();
-        if(isOK) {
-            FileWriter fileWriter = new FileWriter(outputFile);
-            fileWriter.write(gson.toJson(weiboDataList));
-        } else {
-            log.info("Failed to create output file:{}", outputFile.getAbsolutePath());
-        }
+        outputFile.createNewFile();
+        FileWriter fileWriter = new FileWriter(outputFile);
+        fileWriter.write(gson.toJson(weiboDataList));
+
     }
 }

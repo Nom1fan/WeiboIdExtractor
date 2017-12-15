@@ -55,6 +55,17 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.crawljax</groupId>
+			<artifactId>crawljax-core</artifactId>
+			<version>3.6</version>
+		</dependency>
+
 
 	</dependencies>
 

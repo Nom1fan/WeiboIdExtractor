@@ -2,6 +2,7 @@ package com.mmerhav.weiboidextractor.core.extractor;
 
 import com.mmerhav.weiboidextractor.core.reader.WeiboRawData;
 //import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -20,19 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Component
-//@Slf4j
+//@Component
+@Slf4j
 public class WeiboJSONDataExtractor implements WeiboDataExtractor {
-
-    private static Logger log = LoggerFactory.getLogger(WeiboDataExtractor.class);;
 
     @Value("${scraping.interval}")
     private int scarpingInterval;
-
-//    @PostConstruct
-//    public void init() {
-//        log = LoggerFactory.getLogger(WeiboDataExtractor.class);
-//    }
 
     @Override
     public List<WeiboData> extract(List<WeiboRawData> weiboRawDataList) {
