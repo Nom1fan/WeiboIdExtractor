@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.mmerhav.weiboidextractor.selenium.core.model.Card;
 import com.mmerhav.weiboidextractor.selenium.core.page.FanListPage;
 import com.mmerhav.weiboidextractor.selenium.core.page.FanPage;
+import com.mmerhav.weiboidextractor.selenium.core.repository.Repository;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +28,6 @@ import java.util.stream.Collectors;
 @Component
 public class WeiboIdExtractorRunner {
 
-    @Value("${weibo.cards.path}")
-    private String cardsFilePath;
-
-    @Value("${weibo.ids.path}")
-    private String idsFilePath;
-
     @Value("${num.ids.to.add}")
     private int numIdsToAdd;
 
@@ -51,25 +46,15 @@ public class WeiboIdExtractorRunner {
     @Autowired
     private FanPage fanPage;
 
+    @Autowired
+    private Repository repository;
+
     private int attempts = 0;
-
-    private File cardsFile;
-
-    private File idsFile;
-
-    @PostConstruct
-    public void init() {
-        log.info("Initiating...");
-        cardsFile = new File(cardsFilePath);
-        idsFile = new File(idsFilePath);
-        FileUtil.createMissingParentDirectories(cardsFile);
-        FileUtil.createMissingParentDirectories(idsFile);
-    }
 
     public void run() throws IOException {
 
         Set<String> fanIds = new HashSet<>();
-        Set<Card> alreadyAddedCards = loadAlreadyAddedCards();
+        Set<Card> alreadyAddedCards = repository.loadAlreadyAddedCards();
         Set<String> alreadyAddedNickNames = alreadyAddedCards.stream().map(Card::getName).collect(Collectors.toSet());
 
 
@@ -97,6 +82,9 @@ public class WeiboIdExtractorRunner {
                                     log.info("Processed {} ids out of {}", fanIds.size(), numIdsToAdd);
                                 }
                                 driver.navigate().back();
+                            } else {
+                                driver.get(url);
+                                shouldClickFansTab = true;
                             }
                         } else {
                             if (attempts >= maxUserScanAttempts) {
@@ -104,6 +92,9 @@ public class WeiboIdExtractorRunner {
                                 shouldClickFansTab = true;
                             }
                         }
+                    } else {
+                        driver.get(url);
+                        shouldClickFansTab = true;
                     }
                 } catch (WebDriverException e) {
                     driver.get(url);
@@ -117,11 +108,11 @@ public class WeiboIdExtractorRunner {
     private void writeCard(String id, String nickName, Set<String> alreadyAddedNickNames) throws IOException {
         Card addedCard = new Card(id, nickName);
         alreadyAddedNickNames.add(nickName);
-        writeCardCovered(addedCard);
+        repository.writeCardCovered(addedCard);
     }
 
     private void writeId(String id, Set<String> fanIds) throws IOException {
-        writeResult(id);
+        repository.writeResult(id);
         fanIds.add(id);
     }
 
@@ -151,60 +142,5 @@ public class WeiboIdExtractorRunner {
         }
         log.warn("Next card not found");
         return null;
-    }
-
-    private Set<Card> loadAlreadyAddedCards() throws IOException {
-        Set<Card> cards = new HashSet<>();
-        Gson gson = new Gson();
-        List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
-        for (String cardJson : cardJsons) {
-            Card card = gson.fromJson(cardJson, Card.class);
-            cards.add(card);
-        }
-        return cards;
-    }
-
-    private void writeResult(String fanId) throws IOException {
-        try (FileWriter fileWriter = new FileWriter(idsFile, true)) {
-            fileWriter.write(fanId);
-            String newLine = System.getProperty("line.separator");
-            fileWriter.write(newLine);
-        }
-    }
-
-    private static void writeResults(Set<String> fanIds) throws IOException {
-        File file = new File("C:/Users/Mor/Documents/WeiboIds.txt");
-        FileUtil.createMissingParentDirectories(file);
-        try (FileWriter fileWriter = new FileWriter(file, true)) {
-            for (String fanId : fanIds) {
-                fileWriter.write(fanId);
-                String newLine = System.getProperty("line.separator");
-                fileWriter.write(newLine);
-            }
-        }
-    }
-
-    private void writeCardCovered(Card card) throws IOException {
-        try (FileWriter fileWriter = new FileWriter(cardsFile, true)) {
-            File file = new File(cardsFilePath);
-            FileUtil.createMissingParentDirectories(file);
-            fileWriter.write(new Gson().toJson(card));
-            String newLine = System.getProperty("line.separator");
-            fileWriter.write(newLine);
-        }
-    }
-
-
-    private void writeCardsCovered(Set<Card> cards) throws IOException {
-        File file = new File(cardsFilePath);
-        FileUtil.createMissingParentDirectories(file);
-
-        try (FileWriter fileWriter = new FileWriter(file, true)) {
-            for (Card card : cards) {
-                fileWriter.write(new Gson().toJson(card));
-                String newLine = System.getProperty("line.separator");
-                fileWriter.write(newLine);
-            }
-        }
     }
 }

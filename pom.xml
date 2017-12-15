@@ -5,7 +5,7 @@
 
 	<groupId>com.mmerhav</groupId>
 	<artifactId>weibo-id-extractor</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>weibo-id-extractor</name>
@@ -46,11 +46,6 @@
 			<version>2.8.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.8.3</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.0</version>
@@ -60,13 +55,6 @@
 			<artifactId>selenium-java</artifactId>
 			<version>3.4.0</version>
 		</dependency>
-		<dependency>
-			<groupId>com.crawljax</groupId>
-			<artifactId>crawljax-core</artifactId>
-			<version>3.6</version>
-		</dependency>
-
-
 	</dependencies>
 
 
