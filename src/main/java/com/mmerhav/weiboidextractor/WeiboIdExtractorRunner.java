@@ -55,7 +55,7 @@ public class WeiboIdExtractorRunner {
     public void init() {
         log.info("Initiating...");
         cardsFile = new File(cardsFilePath);
-         idsFile = new File(idsFilePath);
+        idsFile = new File(idsFilePath);
         FileUtil.createMissingParentDirectories(cardsFile);
         FileUtil.createMissingParentDirectories(idsFile);
     }
@@ -144,8 +144,7 @@ public class WeiboIdExtractorRunner {
                     driver.get(url);
                 }
             }
-        }
-        finally {
+        } finally {
             driver.close();
         }
     }
@@ -212,21 +211,14 @@ public class WeiboIdExtractorRunner {
         return null;
     }
 
-    private Set<Card> loadAlreadyAddedCards() {
+    private Set<Card> loadAlreadyAddedCards() throws IOException {
         Set<Card> cards = new HashSet<>();
         Gson gson = new Gson();
-
-        try {
-            List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
-            for (String cardJson : cardJsons) {
-                Card card = gson.fromJson(cardJson, Card.class);
-                cards.add(card);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
+        for (String cardJson : cardJsons) {
+            Card card = gson.fromJson(cardJson, Card.class);
+            cards.add(card);
         }
-
         return cards;
     }
 
