@@ -40,10 +40,15 @@ public class RepositoryImpl implements Repository {
     public Set<Card> loadAlreadyAddedCards() throws IOException {
         Set<Card> cards = new HashSet<>();
         Gson gson = new Gson();
-        List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
-        for (String cardJson : cardJsons) {
-            Card card = gson.fromJson(cardJson, Card.class);
-            cards.add(card);
+        File cardsFile = new File(cardsFilePath);
+        if(cardsFile.exists()) {
+            List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
+            for (String cardJson : cardJsons) {
+                Card card = gson.fromJson(cardJson, Card.class);
+                cards.add(card);
+            }
+        } else {
+            cardsFile.createNewFile();
         }
         return cards;
     }
