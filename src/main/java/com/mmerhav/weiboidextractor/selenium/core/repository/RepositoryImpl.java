@@ -28,28 +28,30 @@ public class RepositoryImpl implements Repository {
     private String idsFilePath;
 
     @PostConstruct
-    public void init() {
+    public void init() throws IOException {
         log.info("Initiating repository...");
         File cardsFile = new File(cardsFilePath);
         File idsFile = new File(idsFilePath);
         FileUtil.createMissingParentDirectories(cardsFile);
         FileUtil.createMissingParentDirectories(idsFile);
+        if(!cardsFile.exists()) {
+            cardsFile.createNewFile();
+        }
+        if(!idsFile.exists()) {
+            idsFile.createNewFile();
+        }
     }
 
     @Override
     public Set<Card> loadAlreadyAddedCards() throws IOException {
         Set<Card> cards = new HashSet<>();
         Gson gson = new Gson();
-        File cardsFile = new File(cardsFilePath);
-        if(cardsFile.exists()) {
-            List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
-            for (String cardJson : cardJsons) {
-                Card card = gson.fromJson(cardJson, Card.class);
-                cards.add(card);
-            }
-        } else {
-            cardsFile.createNewFile();
+        List<String> cardJsons = Files.readAllLines(Paths.get(cardsFilePath));
+        for (String cardJson : cardJsons) {
+            Card card = gson.fromJson(cardJson, Card.class);
+            cards.add(card);
         }
+
         return cards;
     }
 
