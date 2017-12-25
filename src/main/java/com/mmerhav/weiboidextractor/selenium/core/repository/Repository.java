@@ -6,13 +6,17 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface Repository {
-    Set<Card> loadAlreadyAddedCards() throws IOException;
+    Set<Card> getCards();
 
-    void writeResult(String fanId) throws IOException;
+    Set<String> getIds();
 
-    void writeResults(Set<String> fanIds) throws IOException;
+    Card getCard(String id);
 
-    void writeCardCovered(Card card) throws IOException;
+    void writeCardCovered(Card card);
 
-    void writeCardsCovered(Set<Card> cards) throws IOException;
+    void writeCardsCovered(Set<Card> cards);
+
+    void updateCardName(Card card);
+
+    void deleteCard(String id);
 }

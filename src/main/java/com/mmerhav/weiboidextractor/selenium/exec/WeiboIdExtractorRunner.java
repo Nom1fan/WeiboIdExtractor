@@ -1,26 +1,24 @@
 package com.mmerhav.weiboidextractor.selenium.exec;
 
-import ch.qos.logback.core.util.FileUtil;
-import com.google.gson.Gson;
+import com.google.common.collect.Sets;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.mmerhav.weiboidextractor.selenium.core.model.Card;
 import com.mmerhav.weiboidextractor.selenium.core.page.FanListPage;
 import com.mmerhav.weiboidextractor.selenium.core.page.FanPage;
+import com.mmerhav.weiboidextractor.selenium.core.repository.CardsDBRepository;
 import com.mmerhav.weiboidextractor.selenium.core.repository.Repository;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileWriter;
+import java.beans.PropertyVetoException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -53,18 +51,16 @@ public class WeiboIdExtractorRunner {
 
     public void run() throws IOException {
 
-        Set<String> fanIds = new HashSet<>();
-        Set<Card> alreadyAddedCards = repository.loadAlreadyAddedCards();
+        Set<Card> alreadyAddedCards = repository.getCards();
         Set<String> alreadyAddedNickNames = alreadyAddedCards.stream().map(Card::getName).collect(Collectors.toSet());
-
 
         try {
             boolean shouldClickFansTab = true;
-            while (fanIds.size() < numIdsToAdd) {
+            while (alreadyAddedCards.size() < numIdsToAdd) {
                 try {
 
                     if (fanListPage.isOnPage()) {
-                        if(shouldClickFansTab) {
+                        if (shouldClickFansTab) {
                             fanListPage.getFansTab().click();
                             shouldClickFansTab = false;
                         }
@@ -77,9 +73,8 @@ public class WeiboIdExtractorRunner {
                             if (fanPage.isOnPage()) {
                                 String id = fanPage.getWeiboId();
                                 if (id.length() == 10) {
-                                    writeId(id, fanIds);
                                     writeCard(id, nickName, alreadyAddedNickNames);
-                                    log.info("Processed {} ids out of {}", fanIds.size(), numIdsToAdd);
+                                    log.info("Processed {} ids out of {}", alreadyAddedCards.size(), numIdsToAdd);
                                 }
                                 driver.navigate().back();
                             } else {
@@ -105,15 +100,14 @@ public class WeiboIdExtractorRunner {
         }
     }
 
-    private void writeCard(String id, String nickName, Set<String> alreadyAddedNickNames) throws IOException {
+    private void writeCard(String id, String nickName, Set<String> alreadyAddedNickNames) {
         Card addedCard = new Card(id, nickName);
+        try {
+            repository.writeCardCovered(addedCard);
+        } catch (DuplicateKeyException e) {
+            repository.updateCardName(addedCard);
+        }
         alreadyAddedNickNames.add(nickName);
-        repository.writeCardCovered(addedCard);
-    }
-
-    private void writeId(String id, Set<String> fanIds) throws IOException {
-        repository.writeResult(id);
-        fanIds.add(id);
     }
 
     private WebElement scanForNextCard(Set<String> alreadyAddedNickNames) {
@@ -142,5 +136,22 @@ public class WeiboIdExtractorRunner {
         }
         log.warn("Next card not found");
         return null;
+    }
+
+    public static void main(String[] args) throws PropertyVetoException {
+
+        CardsDBRepository cardsDBRepository = new CardsDBRepository();
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/weibodb");
+        dataSource.setUser("root");
+        dataSource.setPassword("egg9986");
+        dataSource.setDriverClass("com.mysql.jdbc.Driver");
+        cardsDBRepository.setJdbcTemplate(new JdbcTemplate(dataSource));
+
+        try {
+            cardsDBRepository.writeCardsCovered(Sets.newHashSet(new Card("1000199580", null)));
+        } catch (DuplicateKeyException e) {
+            System.out.println("I'm here");
+        }
     }
 }

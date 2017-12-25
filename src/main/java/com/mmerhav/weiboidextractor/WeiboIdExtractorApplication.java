@@ -2,6 +2,7 @@ package com.mmerhav.weiboidextractor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.mmerhav.weiboidextractor.selenium.exec.WeiboIdExtractorRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
@@ -12,7 +13,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
+import java.beans.PropertyVetoException;
 import java.io.IOException;
 
 @SpringBootApplication
@@ -33,6 +37,21 @@ public class WeiboIdExtractorApplication {
         WebDriver driver = new ChromeDriver();
         driver.get(url);
         return driver;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate() throws PropertyVetoException {
+        return new JdbcTemplate(dataSource());
+    }
+
+    @Bean
+    public DataSource dataSource() throws PropertyVetoException {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/weibodb");
+        dataSource.setUser("root");
+        dataSource.setPassword("egg9986");
+        dataSource.setDriverClass("com.mysql.jdbc.Driver");
+        return dataSource;
     }
 
     public static void main(String[] args) throws IOException {
