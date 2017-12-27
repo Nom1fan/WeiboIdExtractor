@@ -49,10 +49,14 @@ public class WeiboIdExtractorRunner {
 
     private int attempts = 0;
 
-    public void run() throws IOException {
+    private Set<Card> alreadyAddedCards;
 
-        Set<Card> alreadyAddedCards = repository.getCards();
-        Set<String> alreadyAddedNickNames = alreadyAddedCards.stream().map(Card::getName).collect(Collectors.toSet());
+    private Set<String> alreadyAddedNickNames;
+
+    public void run() {
+
+        alreadyAddedCards = repository.getCards();
+        alreadyAddedNickNames = alreadyAddedCards.stream().map(Card::getName).collect(Collectors.toSet());
 
         try {
             boolean shouldClickFansTab = true;
@@ -73,7 +77,7 @@ public class WeiboIdExtractorRunner {
                             if (fanPage.isOnPage()) {
                                 String id = fanPage.getWeiboId();
                                 if (id.length() == 10) {
-                                    writeCard(id, nickName, alreadyAddedNickNames);
+                                    writeCard(id, nickName);
                                     log.info("Processed {} ids out of {}", alreadyAddedCards.size(), numIdsToAdd);
                                 }
                                 driver.navigate().back();
@@ -100,7 +104,7 @@ public class WeiboIdExtractorRunner {
         }
     }
 
-    private void writeCard(String id, String nickName, Set<String> alreadyAddedNickNames) {
+    private void writeCard(String id, String nickName) {
         Card addedCard = new Card(id, nickName);
         try {
             repository.writeCardCovered(addedCard);
@@ -108,6 +112,7 @@ public class WeiboIdExtractorRunner {
             repository.updateCardName(addedCard);
         }
         alreadyAddedNickNames.add(nickName);
+        alreadyAddedCards.add(addedCard);
     }
 
     private WebElement scanForNextCard(Set<String> alreadyAddedNickNames) {
