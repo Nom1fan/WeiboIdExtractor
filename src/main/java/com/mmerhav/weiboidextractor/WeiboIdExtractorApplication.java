@@ -24,6 +24,24 @@ import java.io.IOException;
 @Slf4j
 public class WeiboIdExtractorApplication {
 
+    @Value("${db.host}")
+    private String dbHost;
+
+    @Value("${db.port}")
+    private int dbPort;
+
+    @Value("${db.name}")
+    private String dbName;
+
+    @Value("${db.user}")
+    private String dbUser;
+
+    @Value("${db.password}")
+    private String dbPassword;
+
+    @Value("${db.driver}")
+    private String dbDriver;
+
     @Bean
     public Gson gson() {
         return new GsonBuilder().setPrettyPrinting().create();
@@ -47,10 +65,10 @@ public class WeiboIdExtractorApplication {
     @Bean
     public DataSource dataSource() throws PropertyVetoException {
         ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/weibodb");
-        dataSource.setUser("root");
-        dataSource.setPassword("egg9986");
-        dataSource.setDriverClass("com.mysql.jdbc.Driver");
+        dataSource.setJdbcUrl(String.format("jdbc:mysql://%s:%d/%s", dbHost, dbPort, dbName));
+        dataSource.setUser(dbUser);
+        dataSource.setPassword(dbPassword);
+        dataSource.setDriverClass(dbDriver);
         return dataSource;
     }
 
