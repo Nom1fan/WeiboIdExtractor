@@ -11,7 +11,5 @@ public abstract class BasePage implements Page {
     @Value("${wait.for.elem.timeout}")
     protected int waitForElemTimeout;
 
-    @Autowired
-    protected WebDriver driver;
-
+    public abstract boolean isOnPage(WebDriver driver);
 }

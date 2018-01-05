@@ -13,11 +13,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 import java.io.IOException;
+
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "com.mmerhav")
@@ -50,7 +54,8 @@ public class WeiboIdExtractorApplication {
     @Value("${url.to.scrape}")
     private String url;
 
-    @Bean
+    @Bean(destroyMethod = "close")
+    @Scope(SCOPE_PROTOTYPE)
     public WebDriver webDriver() {
         WebDriver driver = new ChromeDriver();
         driver.get(url);

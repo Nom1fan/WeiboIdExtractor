@@ -1,25 +1,23 @@
 package com.mmerhav.weiboidextractor.selenium.exec;
 
-import com.google.common.collect.Sets;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.mmerhav.weiboidextractor.selenium.core.model.Card;
 import com.mmerhav.weiboidextractor.selenium.core.page.FanListPage;
 import com.mmerhav.weiboidextractor.selenium.core.page.FanPage;
-import com.mmerhav.weiboidextractor.selenium.core.repository.CardsDBRepository;
 import com.mmerhav.weiboidextractor.selenium.core.repository.Repository;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.*;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.beans.PropertyVetoException;
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 
 @Slf4j
@@ -47,6 +45,9 @@ public class WeiboIdExtractorRunner {
     @Autowired
     private Repository repository;
 
+    @Autowired
+    private ApplicationContext context;
+
     private int attempts = 0;
 
     private Set<Card> alreadyAddedCards;
@@ -58,50 +59,48 @@ public class WeiboIdExtractorRunner {
         alreadyAddedCards = repository.getCards();
         alreadyAddedNickNames = alreadyAddedCards.stream().map(Card::getName).collect(Collectors.toSet());
 
-        try {
-            boolean shouldClickFansTab = true;
-            while (alreadyAddedCards.size() < numIdsToAdd) {
-                try {
+        boolean shouldClickFansTab = true;
+        while (alreadyAddedCards.size() < numIdsToAdd) {
+            try {
+                if (fanListPage.isOnPage(driver)) {
+                    if (shouldClickFansTab) {
+                        fanListPage.getFansTab(driver).click();
+                        shouldClickFansTab = false;
+                    }
+                    WebElement element = scanForNextCard(alreadyAddedNickNames);
 
-                    if (fanListPage.isOnPage()) {
-                        if (shouldClickFansTab) {
-                            fanListPage.getFansTab().click();
-                            shouldClickFansTab = false;
-                        }
-                        WebElement element = scanForNextCard(alreadyAddedNickNames);
+                    if (element != null) {
+                        String nickName = fanListPage.getNickName(element);
+                        element.click();
 
-                        if (element != null) {
-                            String nickName = fanListPage.getNickName(element);
-                            element.click();
-
-                            if (fanPage.isOnPage()) {
-                                String id = fanPage.getWeiboId();
-                                if (id.length() == 10) {
-                                    writeCard(id, nickName);
-                                    log.info("Processed {} ids out of {}", alreadyAddedCards.size(), numIdsToAdd);
-                                }
-                                driver.navigate().back();
-                            } else {
-                                driver.get(url);
-                                shouldClickFansTab = true;
+                        if (fanPage.isOnPage(driver)) {
+                            String id = fanPage.getWeiboId(driver);
+                            if (isNumeric(id)) {
+                                writeCard(id, nickName);
+                                log.info("Processed {} ids out of {}", alreadyAddedCards.size(), numIdsToAdd);
                             }
+                            driver.navigate().back();
                         } else {
-                            if (attempts >= maxUserScanAttempts) {
-                                driver.navigate().refresh();
-                                shouldClickFansTab = true;
-                            }
+                            driver.get(url);
+                            shouldClickFansTab = true;
                         }
                     } else {
-                        driver.get(url);
-                        shouldClickFansTab = true;
+                        if (attempts >= maxUserScanAttempts) {
+                            driver.navigate().refresh();
+                            shouldClickFansTab = true;
+                        }
                     }
-                } catch (WebDriverException e) {
+                } else {
                     driver.get(url);
+                    shouldClickFansTab = true;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                driver.close();
+                driver = context.getBean(WebDriver.class);
             }
-        } finally {
-            driver.close();
         }
+
     }
 
     private void writeCard(String id, String nickName) {
@@ -121,8 +120,8 @@ public class WeiboIdExtractorRunner {
 
         do {
             log.info("scan for card attempt {} of {}", attempts + 1, maxUserScanAttempts);
-            fanListPage.scrollListDown();
-            element = findNextCard(alreadyAddedNickNames, fanListPage.getCardsList());
+            fanListPage.scrollListDown(driver);
+            element = findNextCard(alreadyAddedNickNames, fanListPage.getCardsList(driver));
 
             attempts++;
         } while (element == null && attempts < maxUserScanAttempts);
@@ -141,22 +140,5 @@ public class WeiboIdExtractorRunner {
         }
         log.warn("Next card not found");
         return null;
-    }
-
-    public static void main(String[] args) throws PropertyVetoException {
-
-        CardsDBRepository cardsDBRepository = new CardsDBRepository();
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/weibodb");
-        dataSource.setUser("root");
-        dataSource.setPassword("egg9986");
-        dataSource.setDriverClass("com.mysql.jdbc.Driver");
-        cardsDBRepository.setJdbcTemplate(new JdbcTemplate(dataSource));
-
-        try {
-            cardsDBRepository.writeCardsCovered(Sets.newHashSet(new Card("1000199580", null)));
-        } catch (DuplicateKeyException e) {
-            System.out.println("I'm here");
-        }
     }
 }

@@ -3,6 +3,7 @@ package com.mmerhav.weiboidextractor.selenium.core.page;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -19,20 +20,20 @@ public class FanListPage extends BasePage {
     @Value("${url.to.scrape}")
     private String url;
 
-    public WebElement getFansTab() {
+    public WebElement getFansTab(WebDriver driver) {
         String fansTabXPath = "//*[@id=\"app\"]/div[1]/div[1]/div[1]/div[2]/div[1]/div/div/div/ul/li[3]/span";
         new WebDriverWait(driver, waitForElemTimeout).
                 until(ExpectedConditions.numberOfElementsToBe(By.xpath(fansTabXPath), 1));
         return driver.findElement(By.xpath(fansTabXPath));
     }
 
-    public List<WebElement> getCardsList() {
+    public List<WebElement> getCardsList(WebDriver driver) {
         new WebDriverWait(driver, waitForElemTimeout).
                 until(ExpectedConditions.numberOfElementsToBeMoreThan(By.className("card-wrap"), 10));
         return driver.findElements(By.className("card-wrap"));
     }
 
-    public void scrollListDown() {
+    public void scrollListDown(WebDriver driver) {
         ((JavascriptExecutor) driver).executeScript("window.scrollBy(0,250)", "");
     }
 
@@ -45,7 +46,7 @@ public class FanListPage extends BasePage {
     }
 
     @Override
-    public boolean isOnPage() {
+    public boolean isOnPage(WebDriver driver) {
         boolean isOnPage = driver.getCurrentUrl().equals(url);
         log.info("{} isOnPage() is {}", FanListPage.class.getSimpleName(), isOnPage);
         return isOnPage;

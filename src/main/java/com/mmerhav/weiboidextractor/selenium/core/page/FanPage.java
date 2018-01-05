@@ -1,10 +1,7 @@
 package com.mmerhav.weiboidextractor.selenium.core.page;
 
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,17 +14,17 @@ import java.util.List;
 public class FanPage extends BasePage {
 
     @Override
-    public boolean isOnPage() {
-        boolean isOnPage = isBtnVisible() || isEmptyFailedLabelVisible();
+    public boolean isOnPage(WebDriver driver) {
+        boolean isOnPage = isBtnVisible(driver) || isEmptyFailedLabelVisible(driver);
         log.info("{} isOnPage() is {}", FanPage.class.getSimpleName(), isOnPage);
         return isOnPage;
     }
 
-    public String getWeiboId() {
+    public String getWeiboId(WebDriver driver) {
         return driver.getCurrentUrl().replaceAll("^\\D*(\\d+).*", "$1");
     }
 
-    private boolean isEmptyFailedLabelVisible() {
+    private boolean isEmptyFailedLabelVisible(WebDriver driver) {
         try {
             new WebDriverWait(driver, waitForElemTimeout).
                     until(ExpectedConditions.elementToBeClickable(By.className("empty_failed")));
@@ -37,7 +34,7 @@ public class FanPage extends BasePage {
         }
     }
 
-    private boolean isBtnVisible() {
+    private boolean isBtnVisible(WebDriver driver) {
         try {
             log.info("Checking if fan page is loaded");
             new WebDriverWait(driver, waitForElemTimeout).

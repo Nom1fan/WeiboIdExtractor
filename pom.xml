@@ -5,7 +5,7 @@
 
 	<groupId>com.mmerhav</groupId>
 	<artifactId>weibo-id-extractor</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.0.2</version>
 	<packaging>jar</packaging>
 
 	<name>weibo-id-extractor</name>
